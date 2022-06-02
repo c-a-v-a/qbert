@@ -1,10 +1,14 @@
 import { board, dumbRender } from './board';
 import { player, moveUp, moveDown, moveLeft, moveRight } from './player';
 import { monsterSpawner } from './enemy';
+import { gameAnimation } from './canvas';
 import { move } from './controls';
 
 console.log(board);
 console.log(player);
+gameAnimation();
+
+setInterval(monsterSpawner, 4000);
 
 document.onkeydown = (event) => {
   const keyName = event.key;

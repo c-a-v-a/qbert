@@ -3,7 +3,7 @@ import { enemies, enemyOnPosition } from './enemy';
 
 export type board = Array<Array<tile|null>>;
 
-interface tile {
+export interface tile {
   painted: boolean;
   isDisc: boolean;
   available?: boolean;

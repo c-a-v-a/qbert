@@ -1,11 +1,13 @@
-import type { position } from './player';
-import { getPlayerPosition } from './player';
+import type { position, orinentation } from './player';
+import { getPlayerPosition, player } from './player';
 import { BOARD_SIZE, DISC_OFFSET, board } from './board';
 
 interface enemy {
   currentPosition: position;
   type: enemyType;
   interval: number;
+  orinentation?: orinentation;
+  offset: position;
 };
 
 type enemyType = 'snake'|'snake-ball'|'ball';
@@ -16,112 +18,294 @@ function spawnSnake() {
   const newSnake: enemy = {
     currentPosition: {
       y: 1,
-      x: randStart()
+      x: randStart() + 1
     },
     type: 'snake-ball',
-    interval: 0
+    interval: 0,
+    offset: {
+      x: 0,
+      y: 0
+    }
   };
 
   enemies.push(newSnake);
 
-  newSnake.interval = setInterval(() => snakeBallMove(newSnake), 1500);
+  newSnake.interval = setInterval(() => snakeBallMove(newSnake), 2000);
 }
 
 function spawnBall() {
   const ball: enemy = {
     currentPosition: {
       y: 1,
-      x: randStart()
+      x: randStart() + 1,
     },
     type: 'ball',
-    interval: 0
+    interval: 0,
+    offset: {
+      x: 0,
+      y: 0
+    }
   };
+
+  console.log(ball);
 
   enemies.push(ball);
 
-  ball.interval = setInterval(() => ballMove(ball), 1500);
+  ball.interval = setInterval(() => ballMove(ball), 2000);
 }
 
 function ballMove(ball: enemy) {
-  const x = ball.currentPosition.x + randStart() - 1;
+  const x = ball.currentPosition.x + randStart();
   const y = ball.currentPosition.y + 1;
   const pos = getPlayerPosition();
 
-  enemies[enemies.indexOf(ball)].currentPosition.x = x;
-  enemies[enemies.indexOf(ball)].currentPosition.y = y;
+  let interval = setInterval(() => {
+    const index = enemies.indexOf(ball);
+    if (x === ball.currentPosition.x) {
+      if (ball.offset.x >= -9) {
+        ball.offset.x -= 3;
+        ball.offset.y -= 2;
+      } else {
+        ball.offset.x -= 2;
+        ball.offset.y += 7;
+      }
+      if (ball.offset.x <= -20 && ball.offset.y >= 23) {
+        ball.offset.x = 0;
+        ball.offset.y = 0;
+        ball.currentPosition.x = x;
+        ball.currentPosition.y = y;
+        enemies[index] = ball;
+        clearInterval(interval);
 
-  if (y >= BOARD_SIZE) {
-    console.error('ball ded');
-    enemies.splice(enemies.indexOf(ball), 1);
-    clearInterval(ball.interval);
-  }
+        if (y >= BOARD_SIZE) {
+          console.error('ball ded');
+          enemies.splice(enemies.indexOf(ball), 1);
+          clearInterval(ball.interval);
+        }
 
-  if (x === pos.x && y === pos.y) window.alert('player ded');
+        if (x === pos.x && y === pos.y && !player.jump)
+          window.alert('player ded');
+      }
+    } else {
+      if (ball.offset.x <= 9) {
+        ball.offset.x += 3;
+        ball.offset.y -= 3;
+      } else {
+        ball.offset.x += 2;
+        ball.offset.y += 7;
+      }
+      if (ball.offset.x >= 19) {
+        ball.offset.x = 0;
+        ball.offset.y = 0;
+        ball.currentPosition.x = x;
+        ball.currentPosition.y = y;
+        enemies[index] = ball;
+        clearInterval(interval);
+
+        if (y >= BOARD_SIZE) {
+          console.error('ball ded');
+          enemies.splice(enemies.indexOf(ball), 1);
+          clearInterval(ball.interval);
+        }
+
+        if (x === pos.x && y === pos.y && !player.jump)
+          window.alert('player ded');
+        }
+    }
+  }, 75);
 }
 
 function snakeBallMove(ball: enemy) {
-  const x = ball.currentPosition.x + randStart() - 1;
+  const x = ball.currentPosition.x + randStart();
   const y = ball.currentPosition.y + 1;
   const pos = getPlayerPosition();
 
-  enemies[enemies.indexOf(ball)].currentPosition.x = x;
-  enemies[enemies.indexOf(ball)].currentPosition.y = y;
+  let interval = setInterval(() => {
+    const index = enemies.indexOf(ball);
+    if (x === ball.currentPosition.x) {
+      if (ball.offset.x >= -9) {
+        ball.offset.x -= 3;
+        ball.offset.y -= 2;
+      } else {
+        ball.offset.x -= 2;
+        ball.offset.y += 7;
+      }
+      if (ball.offset.x <= -20 && ball.offset.y >= 23) {
+        ball.offset.x = 0;
+        ball.offset.y = 0;
+        ball.currentPosition.x = x;
+        ball.currentPosition.y = y;
+        ball.orinentation = 'up';
+        enemies[index] = ball;
+        clearInterval(interval);
 
-  if (y === BOARD_SIZE - 1) {
-    enemies[enemies.indexOf(ball)].type = 'snake';
-    clearInterval(ball.interval);
-    enemies[enemies.indexOf(ball)].interval = setInterval(() => 
-      snakeMove(enemies[enemies.indexOf(ball)]), 1500);
-  }
+        if (y === BOARD_SIZE - 1) {
+          enemies[enemies.indexOf(ball)].type = 'snake';
+          clearInterval(ball.interval);
+          enemies[enemies.indexOf(ball)].interval = setInterval(() => 
+            snakeMove(enemies[enemies.indexOf(ball)]), 2500);
+        }
 
-  if (x === pos.x && y === pos.y) window.alert('player ded');
+        if (x === pos.x && y === pos.y && !player.jump) window.alert('player ded');
+      }
+    } else {
+      if (ball.offset.x <= 9) {
+        ball.offset.x += 3;
+        ball.offset.y -= 3;
+      } else {
+        ball.offset.x += 2;
+        ball.offset.y += 7;
+      }
+      if (ball.offset.x >= 19) {
+        ball.offset.x = 0;
+        ball.offset.y = 0;
+        ball.currentPosition.x = x;
+        ball.currentPosition.y = y;
+        ball.orinentation = 'up';
+        enemies[index] = ball;
+        clearInterval(interval);
+
+        if (y === BOARD_SIZE - 1) {
+          enemies[enemies.indexOf(ball)].type = 'snake';
+          clearInterval(ball.interval);
+          enemies[enemies.indexOf(ball)].interval = setInterval(() => 
+            snakeMove(enemies[enemies.indexOf(ball)]), 2500);
+        }
+
+        if (x === pos.x && y === pos.y && !player.jump) window.alert('player ded');
+      }
+    }
+  }, 75);
 }
 
 function snakeMove(snake: enemy) {
   let x = snake.currentPosition.x;
   let y = snake.currentPosition.y;
-  const pos = getPlayerPosition();
+  const pos = player.currentPosition;
 
-  if (pos.x < x) {
-    if (pos.y > y) {
-      y++;
-    } else {
-      y--;
-      x--;
-    }
-  } else if (pos.x > x) {
-    if (pos.y > y) {
-      y--;
-    } else {
-      y++;
-      x++;
-    }
+  if (x > pos.x) {
+    if (y < pos.y) { y++; } 
+    else { y--; x--; }
+  } else if (x < pos.x) {
+    if (y < pos.y) { y++; x++;} 
+    else { y--; }
   } else {
-    if (pos.y > y) {
-      y++;
-    } else {
-      y--;
-    }
+    if (y < pos.y) { y++; } 
+    else { y--; }
   }
 
-  const i = enemies.indexOf(snake);
-  enemies[i].currentPosition.x = x;
-  enemies[i].currentPosition.y = y;
+  if (y < snake.currentPosition.y && x === snake.currentPosition.x) {
+      snake.orinentation = 'up';
 
+      let interval = setInterval(() => {
+        const index = enemies.indexOf(snake);
+
+        if (snake.offset.y >= -30) {
+          snake.offset.x += 3;
+          snake.offset.y -= 7;
+        } else {
+          snake.offset.x += 3;
+          snake.offset.y += 4;
+        }
+
+        if (snake.offset.x >= 20 && snake.offset.y <= -23) {
+          snake.offset.x = 0;
+          snake.offset.y = 0;
+          snake.currentPosition.y--;
+          enemies[index] = snake;
+          clearInterval(interval);
+          snakeHelper(index, x, y, pos);
+        }
+      }, 75)
+  } else if (y < snake.currentPosition.y) {
+      snake.orinentation = 'left';
+
+      let interval = setInterval(() => {
+        const index = enemies.indexOf(snake);
+
+        if (snake.offset.x >= -15) {
+          snake.offset.x -= 3;
+          snake.offset.y -= 6;
+        } else {
+          snake.offset.x -= 2;
+          snake.offset.y += 4;
+        }
+
+        if (snake.offset.x <= -17) {
+          snake.offset.x = 0;
+          snake.offset.y = 0;
+          snake.currentPosition.y--;
+          snake.currentPosition.x--;
+          enemies[index] = snake;
+          clearInterval(interval);
+          snakeHelper(index, x, y, pos);
+        }
+      }, 75)
+  } else if (y > snake.currentPosition.y && x === snake.currentPosition.x) {
+      snake.orinentation = 'down';
+
+      let interval = setInterval(() => {
+        const index = enemies.indexOf(snake);
+
+        if (snake.offset.x >= -9) {
+          snake.offset.x -= 3;
+          snake.offset.y -= 2;
+        } else {
+          snake.offset.x -= 2;
+          snake.offset.y += 7;
+        }
+
+        if (snake.offset.x <= -20 && snake.offset.y > 23) {
+          snake.offset.x = 0;
+          snake.offset.y = 0;
+          snake.currentPosition.y++;
+          enemies[index] = snake;
+          clearInterval(interval);
+          snakeHelper(index, x, y, pos);
+        }
+      }, 75)
+  } else {
+      snake.orinentation = 'right';
+
+      let interval = setInterval(() => {
+        const index = enemies.indexOf(snake);
+
+        if (snake.offset.x <= 9) {
+          snake.offset.x += 3;
+          snake.offset.y -= 2;
+        } else {
+          snake.offset.x += 2;
+          snake.offset.y += 7;
+        }
+
+        if (snake.offset.x >= 19) {
+          snake.offset.x = 0;
+          snake.offset.y = 0;
+          snake.currentPosition.y++;
+          snake.currentPosition.x++;
+          enemies[index] = snake;
+          clearInterval(interval);
+          snakeHelper(index, x, y, pos);
+        }
+      }, 75);
+  }
+}
+
+function snakeHelper(index: number, x: number, y: number, pos: position) {
   if (x >= BOARD_SIZE + DISC_OFFSET || x < 0 || y < 0 || y >= BOARD_SIZE ||
       board[y][x] === null || board[y][x]!.isDisc === true) {
     console.log('snek ded');
-    clearInterval(enemies[i].interval);
-    enemies.splice(i, 1);
+    clearInterval(enemies[index].interval);
+    enemies.splice(index, 1);
   }
 
-  if (x === pos.x && y === pos.y) window.alert('player ded');
+  if (x === pos.x && y === pos.y && !player.jump) window.alert('player ded');
 }
 
 function randStart() {
-  const num = Math.floor(Math.random() * (10));
-
-  return num > 5 ? 1 : 2;
+  const num = Math.floor(Math.random() * 2);
+  console.log(num)
+  return num;
 }
 
 function doesSnakeExist(): boolean {
