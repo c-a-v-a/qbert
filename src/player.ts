@@ -1,6 +1,7 @@
 import { board, BOARD_SIZE, DISC_OFFSET, disableDisc, paintTile } from './board';
 import { endEvent } from './controls';
 import { drawPlayer } from './canvas';
+import { enemies, clearMonsters, silentClear } from './enemy';
 
 export type orinentation = 'up' | 'right' | 'left' | 'down';
 
@@ -70,13 +71,14 @@ export function moveUp() {
 
       if (isPlayerDead()) {
         clearInterval(interval);
-        player.lives--;
         player.currentPosition.y = 0;
         player.currentPosition.x = 1;
-        window.alert("U DED");
+        silentClear();
         endEvent();
         return;
       }
+
+      steppedOnMonster();
 
       if (isOnDisc()) {
         player.disk = 2;
@@ -113,13 +115,14 @@ export function moveDown() {
       
       if (isPlayerDead()) {
         clearInterval(interval);
-        player.lives--;
         player.currentPosition.y = 0;
         player.currentPosition.x = 1;
-        window.alert("U DED");
+        silentClear();
         endEvent();
         return;
       }
+
+      steppedOnMonster();
 
       paintTile(player.currentPosition.x, player.currentPosition.y);
       player.jump = false;
@@ -152,11 +155,12 @@ export function moveLeft() {
         clearInterval(interval);
         player.currentPosition.y = 0;
         player.currentPosition.x = 1;
-        window.alert("U DED");
-        player.lives--;
+        silentClear();
         endEvent();
         return;
       }
+
+      steppedOnMonster();
 
       if (isOnDisc()) {
         player.disk = 1;
@@ -192,13 +196,14 @@ export function moveRight() {
 
       if (isPlayerDead()) {
         clearInterval(interval);
-        player.lives--;
         player.currentPosition.y = 0;
         player.currentPosition.x = 1;
-        window.alert("U DED");
+        silentClear();
         endEvent();
         return;
       }
+
+      steppedOnMonster();
 
       player.jump = false;
       paintTile(player.currentPosition.x, player.currentPosition.y);
@@ -264,6 +269,15 @@ export function discMove() {
   }, 75);
 }
 
+function steppedOnMonster() {
+  enemies.map((enemy) => {
+    if (enemy.currentPosition.x === player.currentPosition.x 
+        && enemy.currentPosition.y === player.currentPosition.y)
+      clearMonsters();
+      return;
+  });
+}
+
 export function addPoints() {
   player.points += 25;
 }
@@ -273,4 +287,8 @@ export function getPlayerPosition(): position {
     x: player.currentPosition.x,
     y: player.currentPosition.y
   };
+}
+
+export function hurt() {
+  player.lives--;
 }

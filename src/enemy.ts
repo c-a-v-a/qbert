@@ -1,6 +1,8 @@
 import type { position, orinentation } from './player';
-import { getPlayerPosition, player } from './player';
+import { getPlayerPosition, player, hurt } from './player';
 import { BOARD_SIZE, DISC_OFFSET, board } from './board';
+import { toggleDed } from './canvas';
+import { monsterInterval, unset, setKeyboard, setInter } from './main';
 
 interface enemy {
   currentPosition: position;
@@ -8,6 +10,7 @@ interface enemy {
   interval: number;
   orinentation?: orinentation;
   offset: position;
+  squish?: boolean;
 };
 
 type enemyType = 'snake'|'snake-ball'|'ball';
@@ -15,6 +18,7 @@ type enemyType = 'snake'|'snake-ball'|'ball';
 export let enemies: Array<enemy> = [];
 
 function spawnSnake() {
+  const pos = getPlayerPosition();
   const newSnake: enemy = {
     currentPosition: {
       y: 1,
@@ -25,15 +29,23 @@ function spawnSnake() {
     offset: {
       x: 0,
       y: 0
-    }
+    },
+    squish: false
   };
 
   enemies.push(newSnake);
+
+  const index = enemies.indexOf(newSnake);
+
+  if (enemies[index].currentPosition.x === pos.x 
+    && enemies[index].currentPosition.y === pos.y && !player.jump) clearMonsters();
 
   newSnake.interval = setInterval(() => snakeBallMove(newSnake), 2000);
 }
 
 function spawnBall() {
+  const pos = getPlayerPosition();
+
   const ball: enemy = {
     currentPosition: {
       y: 1,
@@ -44,14 +56,18 @@ function spawnBall() {
     offset: {
       x: 0,
       y: 0
-    }
+    },
+    squish: false
   };
-
-  console.log(ball);
 
   enemies.push(ball);
 
-  ball.interval = setInterval(() => ballMove(ball), 2000);
+  const index = enemies.indexOf(ball);
+
+  if (enemies[index].currentPosition.x === pos.x 
+    && enemies[index].currentPosition.y === pos.y && !player.jump) clearMonsters();
+
+  ball.interval = setInterval(() => ballMove(ball), 1500);
 }
 
 function ballMove(ball: enemy) {
@@ -59,6 +75,12 @@ function ballMove(ball: enemy) {
   const y = ball.currentPosition.y + 1;
   const pos = getPlayerPosition();
 
+  enemies[enemies.indexOf(ball)].squish = true;
+
+  setTimeout(() => {
+    enemies[enemies.indexOf(ball)].squish = false;
+  }, 200);
+
   let interval = setInterval(() => {
     const index = enemies.indexOf(ball);
     if (x === ball.currentPosition.x) {
@@ -83,8 +105,8 @@ function ballMove(ball: enemy) {
           clearInterval(ball.interval);
         }
 
-        if (x === pos.x && y === pos.y && !player.jump)
-          window.alert('player ded');
+        if (enemies[index].currentPosition.x === pos.x 
+            && enemies[index].currentPosition.y === pos.y && !player.jump) clearMonsters();
       }
     } else {
       if (ball.offset.x <= 9) {
@@ -108,11 +130,10 @@ function ballMove(ball: enemy) {
           clearInterval(ball.interval);
         }
 
-        if (x === pos.x && y === pos.y && !player.jump)
-          window.alert('player ded');
-        }
+        if (enemies[index].currentPosition.x === pos.x 
+            && enemies[index].currentPosition.y === pos.y && !player.jump) clearMonsters();
     }
-  }, 75);
+  }}, 75);
 }
 
 function snakeBallMove(ball: enemy) {
@@ -120,6 +141,12 @@ function snakeBallMove(ball: enemy) {
   const y = ball.currentPosition.y + 1;
   const pos = getPlayerPosition();
 
+  enemies[enemies.indexOf(ball)].squish = true;
+
+  setTimeout(() => {
+    enemies[enemies.indexOf(ball)].squish = false;
+  }, 200);
+
   let interval = setInterval(() => {
     const index = enemies.indexOf(ball);
     if (x === ball.currentPosition.x) {
@@ -143,10 +170,11 @@ function snakeBallMove(ball: enemy) {
           enemies[enemies.indexOf(ball)].type = 'snake';
           clearInterval(ball.interval);
           enemies[enemies.indexOf(ball)].interval = setInterval(() => 
-            snakeMove(enemies[enemies.indexOf(ball)]), 2500);
+            snakeMove(enemies[enemies.indexOf(ball)]), 1500);
         }
 
-        if (x === pos.x && y === pos.y && !player.jump) window.alert('player ded');
+        if (enemies[index].currentPosition.x === pos.x 
+            && enemies[index].currentPosition.y === pos.y && !player.jump) clearMonsters();
       }
     } else {
       if (ball.offset.x <= 9) {
@@ -169,10 +197,11 @@ function snakeBallMove(ball: enemy) {
           enemies[enemies.indexOf(ball)].type = 'snake';
           clearInterval(ball.interval);
           enemies[enemies.indexOf(ball)].interval = setInterval(() => 
-            snakeMove(enemies[enemies.indexOf(ball)]), 2500);
+            snakeMove(enemies[enemies.indexOf(ball)]), 1500);
         }
 
-        if (x === pos.x && y === pos.y && !player.jump) window.alert('player ded');
+        if (enemies[index].currentPosition.x === pos.x 
+            && enemies[index].currentPosition.y === pos.y && !player.jump) clearMonsters();
       }
     }
   }, 75);
@@ -299,14 +328,14 @@ function snakeHelper(index: number, x: number, y: number, pos: position) {
     enemies.splice(index, 1);
   }
 
-  if (x === pos.x && y === pos.y && !player.jump) window.alert('player ded');
-}
+  if (x === pos.x && y === pos.y && !player.jump) clearMonsters();
+};
 
 function randStart() {
   const num = Math.floor(Math.random() * 2);
   console.log(num)
   return num;
-}
+};
 
 function doesSnakeExist(): boolean {
   let check = false;
@@ -349,4 +378,40 @@ export function enemyOnPosition(x: number, y: number): string {
   });
 
   return e;
+}
+
+export function clearMonsters() {
+  clearInterval(monsterInterval);
+  unset(); 
+
+  enemies.map((enemy) => {
+    clearInterval(enemy.interval);
+  });
+
+  toggleDed();
+
+  setTimeout(() => {
+    enemies = [];
+    toggleDed();
+
+    setInter();
+    setKeyboard();
+    hurt();
+  }, 2000);
+}
+
+export function silentClear() {
+  clearInterval(monsterInterval);
+  unset(); 
+
+  enemies.map((enemy) => {
+    clearInterval(enemy.interval);
+  });
+
+  setTimeout(() => {
+    enemies = [];
+    setInter();
+    setKeyboard();
+    hurt();
+  }, 2000);
 }

@@ -1,4 +1,4 @@
-import { board, dumbRender } from './board';
+import { board } from './board';
 import { player, moveUp, moveDown, moveLeft, moveRight } from './player';
 import { monsterSpawner } from './enemy';
 import { gameAnimation } from './canvas';
@@ -8,25 +8,55 @@ console.log(board);
 console.log(player);
 gameAnimation();
 
-setInterval(monsterSpawner, 4000);
+export let monsterInterval: number;
+export let gameStarted = 0;
 
-document.onkeydown = (event) => {
-  const keyName = event.key;
+setTimeout(() => {
+  gameStarted++;
+  document.onkeydown = (event) => {
+    const keyName = event.key;
 
-  switch (keyName) {
-    case 'ArrowLeft':
-      move(moveLeft);
-      break;
-    case 'ArrowRight':
-      move(moveRight);
-      break;
-    case 'ArrowDown':
-      move(moveDown);
-      break;
-    case 'ArrowUp':
-      move(moveUp);
-      break;
-    default:
-      break;
+    if (keyName === '1') {
+      gameStarted++;
+      setKeyboard();
+      setInter();
+    }
   }
-};
+}, 2000)
+
+export function unset() {
+  document.onkeydown = () => {};
+}
+
+export function setInter() {
+  monsterInterval = setInterval(monsterSpawner, 3000);
+}
+
+export function removeInterval() {
+  unset();
+  clearInterval(monsterInterval);
+  monsterInterval = -69;
+}
+
+export function setKeyboard() {
+  document.onkeydown = (event) => {
+    const keyName = event.key;
+
+    switch (keyName) {
+      case 'ArrowLeft':
+        move(moveLeft);
+        break;
+      case 'ArrowRight':
+        move(moveRight);
+        break;
+      case 'ArrowDown':
+        move(moveDown);
+        break;
+      case 'ArrowUp':
+        move(moveUp);
+        break;
+      default:
+        break;
+    }
+  };
+}
